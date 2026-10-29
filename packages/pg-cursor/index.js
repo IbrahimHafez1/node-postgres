@@ -194,6 +194,9 @@ class Cursor extends EventEmitter {
   }
 
   _reportError(msg) {
+    // A timeout can report the error before ReadyForQuery.
+    if (this._errorReported) return
+    this._errorReported = true
     this._error = msg
     // satisfy any waiting callback
     if (this._cb) {
