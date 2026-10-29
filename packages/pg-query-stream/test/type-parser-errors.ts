@@ -24,7 +24,8 @@ describe('type parser errors', () => {
       stream.on('error', (error) => emittedErrors.push(error))
       stream.on('close', () => closeCount++)
       const closed = new Promise<void>((resolve) => stream.once('close', resolve))
-      client.query(stream, (error) => callbackErrors.push(error))
+      stream.callback = (error) => callbackErrors.push(error)
+      client.query(stream)
       const queued = client.query('SELECT 42 AS answer, (SELECT count(*)::int FROM pg_cursors) AS cursors')
       const [result] = await Promise.all([queued, closed])
       assert.deepStrictEqual(result.rows, [{ answer: 42, cursors: 0 }])
@@ -56,7 +57,8 @@ describe('type parser errors', () => {
         let closeCount = 0
         stream.on('error', (error) => emittedErrors.push(error))
         stream.on('close', () => closeCount++)
-        client.query(stream, (error) => callbackErrors.push(error))
+        stream.callback = (error) => callbackErrors.push(error)
+        client.query(stream)
 
         await assert.rejects(
           async () => {
